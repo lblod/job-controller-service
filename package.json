@@ -1,0 +1,21 @@
+{
+  "name": "job-controller-service",
+  "version": "0.1.0",
+  "description": "Microservice responsible for managing a job and its related tasks.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lblod/job-controller-service.git"
+  },
+  "author": "redpencil.io",
+  "license": "MIT",
+  "dependencies": {
+    "@lblod/marawa": "^0.8.0-beta-1",
+    "@lblod/mu-auth-sudo": "^0.2.0",
+    "body-parser": "1.19.0",
+    "lodash.flatten": "^4.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
