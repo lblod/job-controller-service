@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
-import { loadJob, updateJob } from "./lib/harvesting-job";
+import { loadJob, updateJob } from "./lib/job";
 import jobsConfig from './jobs-config/config';
 
 app.use(bodyParser.json({

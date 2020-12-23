@@ -77,4 +77,4 @@ The data structure of a configuration and the way it is loaded will most certain
 
 # Caveats
 - The service assumes the job is stored in one graph.
-- The current job configuration is linear, i.e. one task follows from one task. But a tree or graph like job configuration should perfectly be feasible in the future. Withough changing the model.
+- The current job configuration is linear, i.e. one task follows from one task. But a tree or graph like job configuration should perfectly be feasible in the future. Without changing the model.
