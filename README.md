@@ -25,6 +25,7 @@ The instance of a process or group of processes (workflow).
 
 Name | Predicate | Range | Definition
 --- | --- | --- | ---
+uuid |mu:uuid | xsd:string
 creator | dct:creator | rdfs:Resource
 status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
@@ -44,6 +45,7 @@ Subclass of `cogs:Job`
 
 Name | Predicate | Range | Definition
 --- | --- | --- | ---
+uuid |mu:uuid | xsd:string
 status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
@@ -58,4 +60,21 @@ inputContainer | jobs:inputContainer | rdfs:Resource | A reference to the stored
 ## Error
 
 ## class
-`olcsError`
+`olcs:Error`
+
+## properties
+Name | Predicate | Range | Definition
+--- | --- | --- | ---
+uuid |mu:uuid | xsd:string
+message | olcs:message | xsd:string
+
+
+# Useage
+The configuration of the job may be found in `jobs-config/config`.
+For now default `http://lblod.data.gift/vocabularies/jobs/concept/JobType/lblodHarvesting` is provided.
+It should be possible to provide custom config at startup, by overriding the file (untested).
+The data structure of a configuration and the way it is loaded will most certainly change over time.
+
+# Caveats
+- The service assumes the job is stored in one graph.
+- The current job configuration is linear, i.e. one task follows from one task. But a tree or graph like job configuration should perfectly be feasible in the future. Withough changing the model.
