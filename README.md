@@ -49,7 +49,7 @@ status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
 taskType | jobs:taskType | skos:Concept
-taskIndex | jobs:taskIndex | xsd:string | May be used to sort. Probably used as '1', '2.1', '2.2', '3'
+taskIndex | jobs:taskIndex | xsd:string | May be used to sort or complex filtering. Probably used as '1', '2.1', '2.2', '3'
 error | jobs:error | oslc:Error
 parentTask| cogs:dependsOn | jobs:Task
 job | dct:isPartOf | rdfs:Resource | Refer to the parent job
