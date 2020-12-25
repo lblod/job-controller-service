@@ -61,14 +61,6 @@ async function scheduleNextTask( currentTaskUri ){
   }
 
   const config = jobsConfig[job.jobType];
-  if(! (config && config.knownTaskTypes[task.taskType]) ){
-    const errorMsg = `Wrong jobType or taskType for job ${job.job} and task ${task.task}`;
-    job.error = errorMsg;
-    job.status = STATUS_FAILED;
-    await updateJob(job);
-    return;
-  }
-
   const nextTaskType = config.tasksConfiguration[task.taskType];
 
   if(!nextTaskType){
