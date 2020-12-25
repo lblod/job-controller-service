@@ -7,7 +7,7 @@ Microservice responsible for managing a data processing job and its related task
 ```
   PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
   PREFIX jobs: <http://lblod.data.gift/vocabularies/processingJobs/>
-  PREFIX terms: <http://purl.org/dc/terms/>
+  PREFIX dct: <http://purl.org/dc/terms/>
   PREFIX prov: <http://www.w3.org/ns/prov#>
   PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
   PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
