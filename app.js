@@ -17,7 +17,6 @@ app.get('/', function (_, res) {
 });
 
 app.post('/delta', async function (req, res, next) {
-
   try {
     const successSubjects = new Delta(req.body).getInsertsFor('http://www.w3.org/ns/adms#status', STATUS_SUCCESS);
     for(const subject of successSubjects){
@@ -60,8 +59,7 @@ async function scheduleNextTask( currentTaskUri ){
     return;
   }
 
-  const config = jobsConfig[job.jobType];
-  const nextTaskType = config.tasksConfiguration[task.taskType];
+  const nextTaskType = getNextTaskConfig(jobsConfig, task, job);
 
   if(!nextTaskType){
     job.status = STATUS_SUCCESS;
@@ -70,8 +68,8 @@ async function scheduleNextTask( currentTaskUri ){
   else {
     const nextTask = await createTask(job.graph,
                                       job.job,
-                                      nextTaskType.index,
-                                      nextTaskType.type,
+                                      nextTaskType.nextIndex,
+                                      nextTaskType.nextTaskType,
                                       STATUS_SCHEDULED,
                                       [ task.task ],
                                       task.inputContainers );
@@ -102,6 +100,10 @@ async function handleFailedTask( currentTaskUri ){
   job.status = STATUS_FAILED;
   await updateJob(job);
 
+}
+
+function getNextTaskConfig(jobsConfiguration, job, currentTask){
+  return jobsConfiguration[job.jobType].find(taskC => taskC.currentTaskType == currentTask.taskType);
 }
 
 app.use(errorHandler);
