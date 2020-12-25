@@ -31,7 +31,6 @@ status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
 jobType | jobs:jobType | skos:Concept
-activeTask | jobs:activeTask | jobs:Task
 error | jobs:error | oslc:Error
 task | jobs:activeTask | jobs:Task
 
