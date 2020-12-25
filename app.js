@@ -17,6 +17,7 @@ app.get('/', function (_, res) {
 });
 
 app.post('/delta', async function (req, res, next) {
+
   try {
     const successSubjects = new Delta(req.body).getInsertsFor('http://www.w3.org/ns/adms#status', STATUS_SUCCESS);
     for(const subject of successSubjects){
@@ -59,21 +60,11 @@ async function scheduleNextTask( currentTaskUri ){
     return;
   }
 
-  //Now a weird check: we have to make sure we are NOT working on an obsolete delta.
-  if(job.activeTask != currentTaskUri){
-    console.warn(`Incoming delta
-                    uri ${currentTaskUri} does not correspond with what was found
-                    in database for job ${job.job} and currentTask: ${job.activeTask}
-                  `);
-    return;
-  }
-
   const config = jobsConfig[job.jobType];
   if(! (config && config.knownTaskTypes[task.taskType]) ){
     const errorMsg = `Wrong jobType or taskType for job ${job.job} and task ${task.task}`;
     job.error = errorMsg;
     job.status = STATUS_FAILED;
-    job.activeTask = null;
     await updateJob(job);
     return;
   }
@@ -81,7 +72,6 @@ async function scheduleNextTask( currentTaskUri ){
   const nextTaskType = config.tasksConfiguration[task.taskType];
 
   if(!nextTaskType){
-    job.activeTask = null;
     job.status = STATUS_SUCCESS;
     await updateJob(job);
   }
@@ -94,7 +84,6 @@ async function scheduleNextTask( currentTaskUri ){
                                       [ task.task ],
                                       task.inputContainers );
 
-    job.activeTask = nextTask.task;
     job.tasks.push(nextTask.task);
 
     await updateJob(job);
@@ -118,17 +107,7 @@ async function handleFailedTask( currentTaskUri ){
     return;
   }
 
-  //Now a weird check: we have to make sure we are NOT working on an obsolete delta.
-  if(job.activeTask != currentTaskUri){
-    console.warn(`Incoming delta
-                    uri ${currentTaskUri} does not correspond with what was found
-                    in database for job ${job.job} and currentTask: ${job.activeTask}
-                  `);
-    return;
-  }
-
   job.status = STATUS_FAILED;
-  job.activeTask = null;
   await updateJob(job);
 
 }
