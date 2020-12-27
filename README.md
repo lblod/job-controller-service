@@ -32,7 +32,6 @@ created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
 jobType | lblodJob:jobType | skos:Concept
 error | lblodJob:error | oslc:Error
-task | lblodJob:task | lblodJob:Task
 
 ## Task
 Subclass of `cogs:Job`
@@ -59,13 +58,13 @@ inputContainer | lblodJob:inputContainer | nfo:DataContainer | An abstract type,
 ## Error
 
 ## class
-`olcs:Error`
+`oslc:Error`
 
 ## properties
 Name | Predicate | Range | Definition
 --- | --- | --- | ---
 uuid |mu:uuid | xsd:string
-message | olcs:message | xsd:string
+message | oslc:message | xsd:string
 
 
 # Useage
