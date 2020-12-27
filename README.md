@@ -49,7 +49,7 @@ status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
 taskType | lblodJob:taskType | skos:Concept
-taskIndex | lblodJob:taskIndex | xsd:string | May be used for orderering. Probably used as '1', '2.1', '2.2', '3'
+taskIndex | lblodJob:taskIndex | xsd:string | May be used for orderering. E.g. : '1', '2.1', '2.2', '3'
 error | lblodJob:error | oslc:Error
 parentTask| cogs:dependsOn | lblodJob:Task
 job | dct:isPartOf | rdfs:Resource | Refer to the parent job
