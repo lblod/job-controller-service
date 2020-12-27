@@ -30,15 +30,15 @@ creator | dct:creator | rdfs:Resource
 status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
-jobType | jobs:jobType | skos:Concept
-error | jobs:error | oslc:Error
-task | jobs:activeTask | jobs:Task
+jobType | lblodJob:jobType | skos:Concept
+error | lblodJob:error | oslc:Error
+task | lblodJob:task | lblodJob:Task
 
 ## Task
 Subclass of `cogs:Job`
 
 ## class
-`jobs:Task`
+`lblodJob:Task`
 
 ## properties
 
@@ -48,13 +48,13 @@ uuid |mu:uuid | xsd:string
 status | adms:status | adms:Status
 created | dct:created | xsd:dateTime
 modified | dct:modified | xsd:dateTime
-taskType | jobs:taskType | skos:Concept
-taskIndex | jobs:taskIndex | xsd:string | May be used to sort or complex filtering. Probably used as '1', '2.1', '2.2', '3'
-error | jobs:error | oslc:Error
-parentTask| cogs:dependsOn | jobs:Task
+taskType | lblodJob:taskType | skos:Concept
+taskIndex | lblodJob:taskIndex | xsd:string | May be used for orderering. Probably used as '1', '2.1', '2.2', '3'
+error | lblodJob:error | oslc:Error
+parentTask| cogs:dependsOn | lblodJob:Task
 job | dct:isPartOf | rdfs:Resource | Refer to the parent job
-resultsContainer | jobs:resultsContainer | rdfs:Resource | A reference to the stored data. It can be anything and the consumer needs to determine how to handle it.
-inputContainer | jobs:inputContainer | rdfs:Resource | A reference to the stored input data. It can be anything and the consumer needs to determine how to handle it.
+resultsContainer | lblodJob:resultsContainer | nfo:DataContainer | An abstract type, which may be instantiated as e.g File, Graph. The consumer needs to determine how to handle it.
+inputContainer | lblodJob:inputContainer | nfo:DataContainer | An abstract type, which may be instantiated as e.g File, Graph. The consumer needs to determine how to handle it.
 
 ## Error
 

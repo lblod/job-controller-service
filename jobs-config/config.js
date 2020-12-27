@@ -1,9 +1,9 @@
-const TASK_HARVESTING_COLLECTING = 'http://lblod.data.gift/id/job/concept/TaskType/collecting';
-const TASK_HARVESTING_IMPORTING = 'http://lblod.data.gift/id/job/concept/TaskType/importing';
-const TASK_HARVESTING_REPARING = 'http://lblod.data.gift/id/job/concept/TaskType/reparing';
-//const TASK_HARVESTING_VALIDATING = 'http://lblod.data.gift/id/job/concept/TaskType/validating';
-const TASK_HARVESTING_MIRRORING = 'http://lblod.data.gift/id/job/concept/TaskType/mirroring';
-const JOB_LBLOD_HARVESTING = 'http://lblod.data.gift/id/job/concept/JobType/lblodHarvesting';
+const TASK_HARVESTING_COLLECTING = 'http://lblod.data.gift/id/lblodJob/concept/TaskType/collecting';
+const TASK_HARVESTING_IMPORTING = 'http://lblod.data.gift/id/lblodJob/concept/TaskType/importing';
+const TASK_HARVESTING_REPARING = 'http://lblod.data.gift/id/lblodJob/concept/TaskType/reparing';
+//const TASK_HARVESTING_VALIDATING = 'http://lblod.data.gift/id/lblodJob/concept/TaskType/validating';
+const TASK_HARVESTING_MIRRORING = 'http://lblod.data.gift/id/lblodJob/concept/TaskType/mirroring';
+const JOB_LBLOD_HARVESTING = 'http://lblod.data.gift/id/lblodJob/concept/JobType/lblodHarvesting';
 
 //Some declarative boilerplate to manage the task order of the job. Will probably be prettier later
 //Configuration is now linear, tree or graph like task configuration is possible in future, but will required code changes in the controller
