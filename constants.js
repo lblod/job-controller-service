@@ -16,6 +16,7 @@ export const PREFIXES = `
   PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
   PREFIX oslc: <http://open-services.net/ns/core#>
   PREFIX cogs: <http://vocab.deri.ie/cogs#>
+  PREFIX adms: <http://www.w3.org/ns/adms#>
 `;
 
 export const TASK_URI_PREFIX = 'http://lblod.data.gift/id/lblodJob/task/';

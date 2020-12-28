@@ -2,7 +2,7 @@ import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
-import { loadTask, createTask, isTask } from "./lib/task";
+import { loadTask, createTask, isTask, loadTasksForJob } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import jobsConfig from './jobs-config/config';
 
@@ -17,6 +17,7 @@ app.get('/', function (_, res) {
 });
 
 app.post('/delta', async function (req, res, next) {
+  //TODO: find a way to deal with obsolete delta data.
   try {
     const successSubjects = new Delta(req.body).getInsertsFor('http://www.w3.org/ns/adms#status', STATUS_SUCCESS);
     for(const subject of successSubjects){
@@ -59,7 +60,7 @@ async function scheduleNextTask( currentTaskUri ){
     return;
   }
 
-  const nextTaskType = getNextTaskConfig(jobsConfig, task, job);
+  const nextTaskType = getNextTaskConfig(jobsConfig, job, task);
 
   if(!nextTaskType){
     job.status = STATUS_SUCCESS;
@@ -103,7 +104,7 @@ async function handleFailedTask( currentTaskUri ){
 }
 
 function getNextTaskConfig(jobsConfiguration, job, currentTask){
-  return jobsConfiguration[job.jobType].find(taskC => taskC.currentTaskType == currentTask.taskType);
+  return jobsConfiguration[job.jobType]["tasksConfiguration"].find(taskC => taskC.currentTaskType == currentTask.taskType);
 }
 
 app.use(errorHandler);
