@@ -70,10 +70,10 @@ async function scheduleNextTask( currentTaskUri ){
     const nextTask = await createTask(job.graph,
                                       job.job,
                                       nextTaskType.nextIndex,
-                                      nextTaskType.nextTaskType,
+                                      nextTaskType.nextOperation,
                                       STATUS_SCHEDULED,
                                       [ task.task ],
-                                      task.inputContainers );
+                                      task.resultsContainers );
 
     job.tasks.push(nextTask.task);
 
@@ -104,7 +104,7 @@ async function handleFailedTask( currentTaskUri ){
 }
 
 function getNextTaskConfig(jobsConfiguration, job, currentTask){
-  return jobsConfiguration[job.jobType]["tasksConfiguration"].find(taskC => taskC.currentTaskType == currentTask.taskType);
+  return jobsConfiguration[job.operation]["tasksConfiguration"].find(taskC => taskC.currentOperation == currentTask.operation);
 }
 
 app.use(errorHandler);
