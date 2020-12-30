@@ -1,6 +1,6 @@
 {
   "name": "job-controller-service",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Microservice responsible for managing a job and its related tasks.",
   "repository": {
     "type": "git",
