@@ -2,6 +2,8 @@ const JOB_LBLOD_HARVESTING = 'http://lblod.data.gift/id/jobs/concept/JobOperatio
 const TASK_HARVESTING_COLLECTING = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/collecting';
 const TASK_HARVESTING_IMPORTING = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/importing';
 const TASK_HARVESTING_MIRRORING = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/mirroring';
+const TASK_HARVESTING_FILTERING = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/filtering';
+const TASK_HARVESTING_VALIDATING = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/validating';
 
 const JOB_LBLOD_IMPORT = 'http://lblod.data.gift/id/jobs/concept/JobOperation/lblodImportCentraleVindplaats';
 const TASK_IMPORTING_CENTRALE_VINDPLAATS = 'http://lblod.data.gift/id/jobs/concept/TaskOperation/importCentraleVindplaats';
@@ -29,8 +31,18 @@ CONFIG[JOB_LBLOD_HARVESTING]['tasksConfiguration'] = [
   },
   {
     currentOperation: TASK_HARVESTING_IMPORTING,
-    nextOperation: TASK_HARVESTING_MIRRORING,
+    nextOperation: TASK_HARVESTING_VALIDATING,
     nextIndex: '2'
+  },
+  {
+    currentOperation: TASK_HARVESTING_VALIDATING,
+    nextOperation: TASK_HARVESTING_FILTERING,
+    nextIndex: '3'
+  },
+  {
+    currentOperation: TASK_HARVESTING_FILTERING,
+    nextOperation: TASK_HARVESTING_MIRRORING,
+    nextIndex: '4'
   }
 ];
 
@@ -50,13 +62,23 @@ CONFIG[JOB_LBLOD_HARVEST_AND_IMPORT]['tasksConfiguration'] = [
   },
   {
     currentOperation: TASK_HARVESTING_IMPORTING,
-    nextOperation: TASK_HARVESTING_MIRRORING,
+    nextOperation: TASK_HARVESTING_VALIDATING,
     nextIndex: '2'
+  },
+  {
+    currentOperation: TASK_HARVESTING_VALIDATING,
+    nextOperation: TASK_HARVESTING_FILTERING,
+    nextIndex: '3'
+  },
+  {
+    currentOperation: TASK_HARVESTING_FILTERING,
+    nextOperation: TASK_HARVESTING_MIRRORING,
+    nextIndex: '4'
   },
   {
     currentOperation: TASK_HARVESTING_MIRRORING,
     nextOperation: TASK_IMPORTING_CENTRALE_VINDPLAATS,
-    nextIndex: '3'
+    nextIndex: '5'
   }
 ];
 
