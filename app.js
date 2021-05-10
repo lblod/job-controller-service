@@ -4,7 +4,7 @@ import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask, loadTasksForJob } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
-import jobsConfig from './jobs-config/config';
+const jobsConfig = require('./jobs-config/config');
 
 app.use(bodyParser.json({
   type: function (req) {
