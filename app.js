@@ -13,7 +13,7 @@ app.use(bodyParser.json({
 }));
 
 app.get('/', function (_, res) {
-  res.send('Hello harvesting-job-controller');
+  res.send('Hello from job-controller');
 });
 
 app.post('/delta', async function (req, res, next) {
