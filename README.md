@@ -69,11 +69,60 @@ message | oslc:message | xsd:string
 
 
 # Useage
-The configuration of the job may be found in `jobs-config/config`.
-For now default `http://lblod.data.gift/vocabularies/jobs/concept/JobType/lblodHarvesting` is provided.
-It should be possible to provide custom config at startup, by overriding the file (untested).
-The data structure of a configuration and the way it is loaded will most certainly change over time.
-
+## docker-compose.yml
+```
+  jobs-controller:
+    image: lblod/job-controller-service:x.x.x
+    volumes:
+      - ./config/jobs-controller/:/config/
+```
+## config.json
+An example config:
+```
+{
+  "http://lblod.data.gift/id/jobs/concept/JobOperation/lblodHarvesting": {
+    "tasksConfiguration": [
+      {
+        "currentOperation": null,
+        "nextOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/importing",
+        "nextIndex": "0"
+      },
+      {
+        "currentOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/collecting",
+        "nextOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/importing",
+        "nextIndex": "1"
+      },
+      {
+        "currentOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/importing",
+        "nextOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/validating",
+        "nextIndex": "2"
+      }
+    ]
+  }
+}
+```
+## deltanotifier
+```
+[ //other rules
+  {
+    match: {
+      predicate: {
+        type: 'uri',
+        value: 'http://www.w3.org/ns/adms#status'
+      }
+    },
+    callback: {
+      method: 'POST',
+      url: 'http://jobs-controller/delta'
+    },
+    options: {
+      resourceFormat: 'v0.0.1',
+      gracePeriod: 1000,
+      ignoreFromSelf: true
+    }
+  }
+]
+```
 # Caveats
 - The service assumes the job is stored in one graph.
 - The current job configuration is linear, i.e. one task follows from one task. But a tree or graph like job configuration should perfectly be feasible in the future. Without changing the model.

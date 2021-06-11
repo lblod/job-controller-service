@@ -2,7 +2,7 @@ import { app, errorHandler } from 'mu';
 import bodyParser from 'body-parser';
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
-import { loadTask, createTask, isTask, loadTasksForJob } from "./lib/task";
+import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 const jobsConfig = require('/config/config.json');
 
@@ -13,7 +13,7 @@ app.use(bodyParser.json({
 }));
 
 app.get('/', function (_, res) {
-  res.send('Hello harvesting-job-controller');
+  res.send('Hello from job-controller');
 });
 
 app.post('/delta', async function (req, res, next) {
