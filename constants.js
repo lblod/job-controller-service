@@ -17,6 +17,7 @@ export const PREFIXES = `
   PREFIX oslc: <http://open-services.net/ns/core#>
   PREFIX cogs: <http://vocab.deri.ie/cogs#>
   PREFIX adms: <http://www.w3.org/ns/adms#>
+  PREFIX schema: <http://schema.org/>
 `;
 
 export const TASK_URI_PREFIX = 'http://redpencil.data.gift/id/task/';
