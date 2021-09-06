@@ -4,7 +4,7 @@
  * @method parseResult
  * @return {Array}
  */
-export function parseResult( result ) {
+ export function parseResult( result ) {
   if(!(result.results && result.results.bindings.length)) return [];
 
   const bindingKeys = result.head.vars;
@@ -21,4 +21,4 @@ export function parseResult( result ) {
     });
     return obj;
   });
-};
+}
