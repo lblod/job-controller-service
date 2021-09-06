@@ -20,6 +20,12 @@ app.get('/', function (_, res) {
   res.send('Hello from job-controller');
 });
 
+app.post('/delta-schedule', function(req, res) {
+  const newScheduledJob = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
+  scheduleSingleJob({uri: newScheduledJob[0]});
+  res.sendStatus(201);
+});
+
 app.post('/delta', async function (req, res, next) {
   //TODO: find a way to deal with obsolete delta data.
   try {
