@@ -4,6 +4,8 @@ import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
+import { waitForDatabase } from './utils/database-utils';
+import { scheduleJobs, scheduleSingleJob } from './lib/schedule';
 const jobsConfig = require('/config/config.json');
 
 app.use(bodyParser.json({
@@ -11,6 +13,8 @@ app.use(bodyParser.json({
     return /^application\/json/.test(req.get('content-type'));
   }
 }));
+
+waitForDatabase(scheduleJobs);
 
 app.get('/', function (_, res) {
   res.send('Hello from job-controller');
