@@ -5,7 +5,7 @@ import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import { waitForDatabase } from './utils/database-utils';
-import { scheduleJobs, scheduleSingleJob } from './lib/schedule';
+import { initScheduledJobs, addScheduledJob, deleteScheduledJob, updateCronFrequency} from './lib/schedule';
 const jobsConfig = require('/config/config.json');
 
 app.use(bodyParser.json({
@@ -14,15 +14,35 @@ app.use(bodyParser.json({
   }
 }));
 
-waitForDatabase(scheduleJobs);
+waitForDatabase(initScheduledJobs);
 
 app.get('/', function (_, res) {
   res.send('Hello from job-controller');
 });
 
-app.post('/delta-schedule', function(req, res) {
-  const newScheduledJob = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
-  scheduleSingleJob({uri: newScheduledJob[0]});
+app.post('/delta-scheduledJob', function(req, res) {
+  const scheduledJobToAdd = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
+  if (scheduledJobToAdd.length) {
+    console.log(`[DELTA] Started working on adding scheduled-job: ${scheduledJobToAdd}`);
+    addScheduledJob({uri: scheduledJobToAdd[0]});
+  }
+
+  const scheduledJobToDelete = new Delta(req.body).getDeletesFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
+  if (scheduledJobToDelete.length) {
+    console.log(`[DELTA] Started working on deleting scheduled-job: ${scheduledJobToDelete}`);
+    deleteScheduledJob({uri: scheduledJobToDelete[0]});
+  }
+  res.sendStatus(201);
+});
+
+app.post('/delta-cronSchedule', function(req, res) {
+  const deletedCronJob = new Delta(req.body).getDeletesForPredicates('http://schema.org/repeatFrequency');
+  const insertedCronJob = new Delta(req.body).getInsertsForPredicates('http://schema.org/repeatFrequency');
+
+  if(deletedCronJob[0] == insertedCronJob[0]) {
+    console.log(`[DELTA] Starting working on updated cron-frequency: ${deletedCronJob}`);
+    updateCronFrequency({uri: insertedCronJob[0]});
+  }
   res.sendStatus(201);
 });
 
