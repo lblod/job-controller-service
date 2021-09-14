@@ -20,7 +20,7 @@ app.get('/', function (_, res) {
   res.send('Hello from job-controller');
 });
 
-app.post('/delta-scheduledJob', function(req, res) {
+app.post('/delta/scheduled-job', function(req, res) {
   const scheduledJobToAdd = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
   if (scheduledJobToAdd.length) {
     console.log(`[DELTA] Started working on adding scheduled-job: ${scheduledJobToAdd}`);
