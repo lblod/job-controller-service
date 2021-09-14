@@ -5,7 +5,7 @@ import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import { waitForDatabase } from './utils/database-utils';
-import { initScheduledJobs, addScheduledJob, deleteScheduledJob, updateCronFrequency} from './lib/schedule';
+import { initScheduledJobs, addScheduledJob, deleteScheduledJob } from './lib/schedule';
 const jobsConfig = require('/config/config.json');
 
 app.use(bodyParser.json({
@@ -31,17 +31,6 @@ app.post('/delta/scheduled-job', function(req, res) {
   if (scheduledJobToDelete.length) {
     console.log(`[DELTA] Started working on deleting scheduled-job: ${scheduledJobToDelete}`);
     deleteScheduledJob({uri: scheduledJobToDelete[0]});
-  }
-  res.sendStatus(201);
-});
-
-app.post('/delta-cronSchedule', function(req, res) {
-  const deletedCronJob = new Delta(req.body).getDeletesForPredicates('http://schema.org/repeatFrequency');
-  const insertedCronJob = new Delta(req.body).getInsertsForPredicates('http://schema.org/repeatFrequency');
-
-  if(deletedCronJob[0] == insertedCronJob[0]) {
-    console.log(`[DELTA] Starting working on updated cron-frequency: ${deletedCronJob}`);
-    updateCronFrequency({uri: insertedCronJob[0]});
   }
   res.sendStatus(201);
 });
