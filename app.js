@@ -5,7 +5,7 @@ import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import { waitForDatabase } from './utils/database-utils';
-import { initScheduledJobs, addScheduledJob, deleteScheduledJob } from './lib/schedule';
+import { initScheduledJobs, addScheduledJob, deleteScheduledJob  } from './lib/schedule';
 const jobsConfig = require('/config/config.json');
 
 app.use(bodyParser.json({
@@ -20,19 +20,26 @@ app.get('/', function (_, res) {
   res.send('Hello from job-controller');
 });
 
-app.post('/delta/scheduled-job', function(req, res) {
-  const scheduledJobToAdd = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
-  if (scheduledJobToAdd.length) {
-    console.log(`[DELTA] Started working on adding scheduled-job: ${scheduledJobToAdd}`);
-    addScheduledJob({uri: scheduledJobToAdd[0]});
-  }
+app.post('/delta/scheduled-job', async function(req, res, next) {
+  try {
+    const scheduledJobsToDelete = new Delta(req.body).getDeletesFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
+    for(const scheduledJobUri of scheduledJobsToDelete) {
+      console.log(`[DELTA] Started working on deleting scheduled-job: ${scheduledJobUri}`);
+      await deleteScheduledJob({uri: scheduledJobUri});
+    }
 
-  const scheduledJobToDelete = new Delta(req.body).getDeletesFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
-  if (scheduledJobToDelete.length) {
-    console.log(`[DELTA] Started working on deleting scheduled-job: ${scheduledJobToDelete}`);
-    deleteScheduledJob({uri: scheduledJobToDelete[0]});
+    const scheduledJobsToAdd = new Delta(req.body).getInsertsFor('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://vocab.deri.ie/cogs#ScheduledJob');
+    for(const scheduledJobUri of scheduledJobsToAdd) {
+      console.log(`[DELTA] Started working on adding scheduled-job: ${scheduledJobUri}`);
+      await addScheduledJob({uri: scheduledJobUri});
+    }
+    
+    res.sendStatus(201);
+  } catch(e) {
+    console.log(`Something unexpected went wrong while handling delta for scheduled-job!`);
+    console.error(e);
+    return next(e);
   }
-  res.sendStatus(201);
 });
 
 app.post('/delta', async function (req, res, next) {
