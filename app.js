@@ -60,17 +60,16 @@ async function scheduleNextTask( currentTaskUri ){
     return;
   }
 
-  const nextTaskType = getNextTaskConfig(jobsConfig, job, task);
+  const currentTaskConfig = getCurrentTaskConfig(jobsConfig, job, task);
 
-  if(!nextTaskType){
-    job.status = STATUS_SUCCESS;
-    await updateJob(job);
+  if (!currentTaskConfig) {
+    throw new Error('No config is found for the current task operation such that no next task can be scheduled');
   }
   else {
     const nextTask = await createTask(job.graph,
                                       job.job,
-                                      nextTaskType.nextIndex,
-                                      nextTaskType.nextOperation,
+                                      currentTaskConfig.nextIndex,
+                                      currentTaskConfig.nextOperation,
                                       STATUS_SCHEDULED,
                                       [ task.task ],
                                       task.resultsContainers );
@@ -103,8 +102,12 @@ async function handleFailedTask( currentTaskUri ){
 
 }
 
-function getNextTaskConfig(jobsConfiguration, job, currentTask){
-  return jobsConfiguration[job.operation]["tasksConfiguration"].find(taskC => taskC.currentOperation == currentTask.operation);
+function getCurrentTaskConfig(jobsConfiguration, job, currentTask){
+  const config = jobsConfiguration[job.operation];
+  if (!config) throw new Error(`No config for operation "${job.operation}" could be found.`);
+  const taskConfig = config.tasksConfiguration;
+  if (!taskConfig) throw new Error(`The configuration for "${job.operation}" might be malformed.`);
+  return taskConfig.find(taskC => taskC.currentOperation == currentTask.operation);
 }
 
 app.use(errorHandler);
