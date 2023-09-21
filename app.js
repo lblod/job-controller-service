@@ -1,36 +1,46 @@
-import { app, errorHandler } from 'mu';
-import bodyParser from 'body-parser';
+import { app, errorHandler } from "mu";
+import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
-import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED} from "./constants";
+import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED } from "./constants";
 import { loadTask, createTask, isTask } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
-const jobsConfig = require('/config/config.json');
+const jobsConfig = require("/config/config.json");
 
-app.use(bodyParser.json({
-  type: function (req) {
-    return /^application\/json/.test(req.get('content-type'));
-  }
-}));
+app.use(
+  bodyParser.json({
+    type: function(req) {
+      return /^application\/json/.test(req.get("content-type"));
+    },
+  }),
+);
 
-app.get('/', function (_, res) {
-  res.send('Hello from job-controller');
+app.get("/", function(_, res) {
+  res.send("Hello from job-controller");
 });
 
-app.post('/delta', async function (req, res, next) {
+app.post("/delta", async function(req, res, next) {
   //TODO: find a way to deal with obsolete delta data.
   try {
-    const successSubjects = new Delta(req.body).getInsertsFor('http://www.w3.org/ns/adms#status', STATUS_SUCCESS);
-    for(const subject of successSubjects){
+    const successSubjects = new Delta(req.body).getInsertsFor(
+      "http://www.w3.org/ns/adms#status",
+      STATUS_SUCCESS,
+    );
+    for (const subject of successSubjects) {
       console.log(`Starting working on success subject: ${subject}`);
-      if(await isTask(subject)){
+      if (await isTask(subject)) {
         await scheduleNextTask(subject);
+      } else {
+        console.log("not a task");
       }
     }
 
-    const failSubjects = new Delta(req.body).getInsertsFor('http://www.w3.org/ns/adms#status', STATUS_FAILED);
-    for(const subject of failSubjects){
+    const failSubjects = new Delta(req.body).getInsertsFor(
+      "http://www.w3.org/ns/adms#status",
+      STATUS_FAILED,
+    );
+    for (const subject of failSubjects) {
       console.log(`Starting working on fail subject: ${subject}`);
-      if(await isTask(subject)){
+      if (await isTask(subject)) {
         await handleFailedTask(subject);
       }
     }
@@ -43,19 +53,19 @@ app.post('/delta', async function (req, res, next) {
   }
 });
 
-async function scheduleNextTask( currentTaskUri ){
+async function scheduleNextTask(currentTaskUri) {
   console.log(`Scheduling next task based on ${currentTaskUri}`);
 
   const task = await loadTask(currentTaskUri);
 
-  if(!(task && task.job)) {
+  if (!(task && task.job)) {
     console.error(`No Task or inconsistent data found for ${currentTaskUri}`);
     return;
   }
 
   const job = await loadJob(task.job);
 
-  if(!job){
+  if (!job) {
     console.error(`No job found for ${task.job}`);
     return;
   }
@@ -68,20 +78,22 @@ async function scheduleNextTask( currentTaskUri ){
       //Task operation found as next operation is this config, so this is final task in job
       job.status = STATUS_SUCCESS;
       await updateJob(job);
-    }
-    else {
+    } else {
       //Task operation is never referenced, then there is no config for this: do nothing other than fail/stop
-      throw new Error('No config is found for the current task operation such that no next task can be scheduled');
+      throw new Error(
+        "No config is found for the current task operation such that no next task can be scheduled",
+      );
     }
-  }
-  else {
-    const nextTask = await createTask(job.graph,
-                                      job.job,
-                                      currentTaskConfig.nextIndex,
-                                      currentTaskConfig.nextOperation,
-                                      STATUS_SCHEDULED,
-                                      [ task.task ],
-                                      task.resultsContainers );
+  } else {
+    const nextTask = await createTask(
+      job.graph,
+      job.job,
+      currentTaskConfig.nextIndex,
+      currentTaskConfig.nextOperation,
+      STATUS_SCHEDULED,
+      [task.task],
+      task.resultsContainers,
+    );
 
     job.tasks.push(nextTask.task);
 
@@ -89,42 +101,57 @@ async function scheduleNextTask( currentTaskUri ){
   }
 }
 
-async function handleFailedTask( currentTaskUri ){
+async function handleFailedTask(currentTaskUri) {
   console.log(`Handling failed task based on ${currentTaskUri}`);
 
   const task = await loadTask(currentTaskUri);
 
-  if(!(task && task.job)) {
+  if (!(task && task.job)) {
     console.error(`No Task or inconsistent data found for ${currentTaskUri}`);
     return;
   }
 
   const job = await loadJob(task.job);
 
-  if(!job){
+  if (!job) {
     console.error(`No job found for ${task.job}`);
     return;
   }
 
   job.status = STATUS_FAILED;
   await updateJob(job);
-
 }
 
-function getCurrentTaskConfig(jobsConfiguration, job, currentTask){
+function getCurrentTaskConfig(jobsConfiguration, job, currentTask) {
   const config = jobsConfiguration[job.operation];
-  if (!config) throw new Error(`No config for operation "${job.operation}" could be found.`);
+  if (!config)
+    throw new Error(
+      `No config for operation "${job.operation}" could be found.`,
+    );
   const taskConfig = config.tasksConfiguration;
-  if (!taskConfig) throw new Error(`The configuration for "${job.operation}" might be malformed.`);
-  return taskConfig.find(taskC => taskC.currentOperation == currentTask.operation);
+  if (!taskConfig)
+    throw new Error(
+      `The configuration for "${job.operation}" might be malformed.`,
+    );
+  return taskConfig.find(
+    (taskC) => taskC.currentOperation == currentTask.operation,
+  );
 }
 
-function getPreviousTaskConfig(jobsConfiguration, job, currentTask){
+function getPreviousTaskConfig(jobsConfiguration, job, currentTask) {
   const config = jobsConfiguration[job.operation];
-  if (!config) throw new Error(`No config for operation "${job.operation}" could be found.`);
+  if (!config)
+    throw new Error(
+      `No config for operation "${job.operation}" could be found.`,
+    );
   const taskConfig = config.tasksConfiguration;
-  if (!taskConfig) throw new Error(`The configuration for "${job.operation}" might be malformed.`);
-  return taskConfig.find(taskC => taskC.nextOperation == currentTask.operation);
+  if (!taskConfig)
+    throw new Error(
+      `The configuration for "${job.operation}" might be malformed.`,
+    );
+  return taskConfig.find(
+    (taskC) => taskC.nextOperation == currentTask.operation,
+  );
 }
 
 app.use(errorHandler);
