@@ -2,7 +2,7 @@ import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED } from "./constants";
-import { loadTask, createTask, isTask } from "./lib/task";
+import { loadTask, createTask, isTask, taskExists } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 const jobsConfig = require("/config/config.json");
 
@@ -86,6 +86,11 @@ async function scheduleNextTask(currentTaskUri) {
       );
     }
   } else {
+    // check if next task already exist before creating it
+    if (await taskExists(job.graph, job.job, currentTaskConfig.nextIndex, currentTaskConfig.nextOperation)) {
+            console.error(`${currentTaskConfig.nextOperation} in ${job.job} already exist`);
+            return;
+    }
     const nextTask = await createTask(
       job.graph,
       job.job,
