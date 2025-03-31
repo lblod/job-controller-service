@@ -4,22 +4,14 @@ import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED } from "./constants";
 import { loadTask, createTask, isTask, taskExists } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
-const jobsConfig = require("/config/config.json");
+import  * as jobsConfig  from "./config/config.json";
 
-app.use(
-  bodyParser.json({
-    type: function(req) {
-      return /^application\/json/.test(req.get("content-type"));
-    },
-    limit: '50mb'
-  }),
-);
 
 app.get("/", function(_, res) {
   res.send("Hello from job-controller");
 });
 
-app.post("/delta", async function(req, res, next) {
+app.post("/delta",  bodyParser.json({ limit: '50mb' }), async function(req, res, next) {
   //TODO: find a way to deal with obsolete delta data.
   try {
     const successSubjects = new Delta(req.body).getInsertsFor(
