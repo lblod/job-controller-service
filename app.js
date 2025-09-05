@@ -20,10 +20,14 @@ app.post("/delta",  bodyParser.json({ limit: '50mb' }), async function(req, res,
     );
     for (const subject of successSubjects) {
       console.log(`Starting working on success subject: ${subject}`);
-      if (await isTask(subject)) {
-        await scheduleNextTask(subject);
-      } else {
-        console.log("not a task");
+      try {
+        if (await isTask(subject)) {
+          await scheduleNextTask(subject);
+        } else {
+          console.log("not a task");
+        }
+      } catch (subjectError) {
+        console.error(`Error processing success subject ${subject}:`, subjectError.message);
       }
     }
 
@@ -33,15 +37,18 @@ app.post("/delta",  bodyParser.json({ limit: '50mb' }), async function(req, res,
     );
     for (const subject of failSubjects) {
       console.log(`Starting working on fail subject: ${subject}`);
-      if (await isTask(subject)) {
-        await handleFailedTask(subject);
+      try {
+        if (await isTask(subject)) {
+          await handleFailedTask(subject);
+        }
+      } catch (subjectError) {
+        console.error(`Error processing fail subject ${subject}:`, subjectError.message);
       }
     }
 
     return res.status(200).send().end();
   } catch (e) {
-    console.log(`Something unexpected went wrong while handling delta!`);
-    console.error(e);
+    console.error(`Delta processing failed:`, e.message);
     return next(e);
   }
 });
@@ -151,5 +158,17 @@ function getPreviousTaskConfig(jobsConfiguration, job, currentTask) {
     (taskC) => taskC.nextOperation == currentTask.operation,
   );
 }
+
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') {
+    console.warn(`Payload too large for ${req.method} ${req.originalUrl}`);
+    return res.status(413).json({
+      errors: [ {title: 'Payload too large'} ]
+    });
+  }
+
+  // Pass other errors to the default handler
+  next(err);
+});
 
 app.use(errorHandler);
