@@ -94,30 +94,6 @@ export const WRITER_PREFIXES = (() => {
   return prefs;
 })();
 
-/**
- * This object is produced on application startup.
- * It is an object with the same keys as the PREFIXES, but every value is now a
- * template function to produce a namedNode with the given ID in the selected
- * namespace.
- * E.g. if you execute
- *   NAMESPACES.rdf`type`
- * you get the same as
- *   namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
- *
- * @public
- * @constant
- * @type {Object}
- * @param {String} pred - Every value in this object is a fuction that takes an
- * identifier to produce a full URI.
- * @returns {NamedNode} Represents the created individual by its URI.
- */
-export const NAMESPACES = (() => {
-  const all = {};
-  for (const key in PREFIXES)
-    all[key] = (pred) => namedNode(`${PREFIXES[key]}${pred}`);
-  return all;
-})();
-
 export const TASK_URI_PREFIX = 'http://redpencil.data.gift/id/task/';
 export const ERROR_URI_PREFIX = 'http://redpencil.data.gift/id/jobs/error/';
 
