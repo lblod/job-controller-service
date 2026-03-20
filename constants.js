@@ -2,6 +2,7 @@ import envvar from 'env-var';
 import * as N3 from 'n3';
 const { namedNode } = N3.DataFactory;
 
+export const STATUS_PREPARING = 'http://redpencil.data.gift/id/concept/JobStatus/preparing';
 export const STATUS_BUSY = 'http://redpencil.data.gift/id/concept/JobStatus/busy';
 export const STATUS_SCHEDULED = 'http://redpencil.data.gift/id/concept/JobStatus/scheduled';
 export const STATUS_SUCCESS = 'http://redpencil.data.gift/id/concept/JobStatus/success';
