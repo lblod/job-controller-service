@@ -1,7 +1,7 @@
 import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
-import { STATUS_SUCCESS, STATUS_FAILED, STATUS_SCHEDULED } from "./constants";
+import { STATUS_SUCCESS, STATUS_FAILED, STATUS_PREPARING } from "./constants";
 import { loadTask, createTask, isTask, taskExists } from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import  * as jobsConfig  from "./config/config.json";
@@ -95,7 +95,7 @@ async function scheduleNextTask(currentTaskUri) {
       job.job,
       currentTaskConfig.nextIndex,
       currentTaskConfig.nextOperation,
-      STATUS_SCHEDULED,
+      STATUS_PREPARING,
       [task.task],
       task.resultsContainers,
     );
