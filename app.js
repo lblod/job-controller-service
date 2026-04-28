@@ -102,7 +102,7 @@ async function scheduleNextTask(currentTaskUri) {
         "No config is found for the current task operation such that no next task can be scheduled",
       );
     }
-  } else {
+  } else if(!currentTaskConfig.external) {
     // check if next task already exist before creating it
     const parents = [task.task];
     if (
