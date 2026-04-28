@@ -89,20 +89,18 @@ async function scheduleNextTask(currentTaskUri) {
 
   if (!currentTaskConfig) {
     //No config found for this task or final task in the job
-    if (
-      getPreviousTaskConfig(jobsConfig, job, task) &&
-      (await hasOnlySuccessfulTasks(task.job))
-    ) {
+    const previousTaskConfig = getPreviousTaskConfig(jobsConfig, job, task);
+    if (previousTaskConfig && (await hasOnlySuccessfulTasks(task.job))) {
       //Task operation found as next operation is this config, so this is final task in job
       job.status = STATUS_SUCCESS;
       await updateJob(job);
-    } else {
+    } else if (!previousTaskConfig) {
       //Task operation is never referenced, then there is no config for this: do nothing other than fail/stop
       throw new Error(
         "No config is found for the current task operation such that no next task can be scheduled",
       );
     }
-  } else if(!currentTaskConfig.external) {
+  } else if (!currentTaskConfig.external) {
     // check if next task already exist before creating it
     const parents = [task.task];
     if (
