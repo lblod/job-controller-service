@@ -2,7 +2,13 @@ import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_PREPARING } from "./constants";
-import { loadTask, createTask, isTask, taskExists } from "./lib/task";
+import {
+  loadTask,
+  createTask,
+  isTask,
+  taskExists,
+  hasOnlySuccessfulTasks,
+} from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
 import * as jobsConfig from "./config/config.json";
 
@@ -83,7 +89,10 @@ async function scheduleNextTask(currentTaskUri) {
 
   if (!currentTaskConfig) {
     //No config found for this task or final task in the job
-    if (getPreviousTaskConfig(jobsConfig, job, task)) {
+    if (
+      getPreviousTaskConfig(jobsConfig, job, task) &&
+      (await hasOnlySuccessfulTasks(task.job))
+    ) {
       //Task operation found as next operation is this config, so this is final task in job
       job.status = STATUS_SUCCESS;
       await updateJob(job);
