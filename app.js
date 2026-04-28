@@ -95,12 +95,14 @@ async function scheduleNextTask(currentTaskUri) {
     }
   } else {
     // check if next task already exist before creating it
+    const parents = [task.task];
     if (
       await taskExists(
         job.graph,
         job.job,
         currentTaskConfig.nextIndex,
         currentTaskConfig.nextOperation,
+        parents,
       )
     ) {
       console.error(
@@ -114,7 +116,7 @@ async function scheduleNextTask(currentTaskUri) {
       currentTaskConfig.nextIndex,
       currentTaskConfig.nextOperation,
       STATUS_PREPARING,
-      [task.task],
+      parents,
       task.resultsContainers,
     );
 
