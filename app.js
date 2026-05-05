@@ -65,7 +65,7 @@ app.post(
       console.error(`Delta processing failed:`, e.message);
       return next(e);
     }
-  },
+  }
 );
 
 async function scheduleNextTask(currentTaskUri) {
