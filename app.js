@@ -2,56 +2,71 @@ import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_PREPARING } from "./constants";
-import { loadTask, createTask, isTask, taskExists } from "./lib/task";
+import {
+  loadTask,
+  createTask,
+  isTask,
+  taskExists,
+  hasOnlySuccessfulTasks,
+} from "./lib/task";
 import { loadJob, updateJob } from "./lib/job";
-import  * as jobsConfig  from "./config/config.json";
+import * as jobsConfig from "./config/config.json";
 
-
-app.get("/", function(_, res) {
+app.get("/", function (_, res) {
   res.send("Hello from job-controller");
 });
 
-app.post("/delta",  bodyParser.json({ limit: '50mb' }), async function(req, res, next) {
-  //TODO: find a way to deal with obsolete delta data.
-  try {
-    const successSubjects = new Delta(req.body).getInsertsFor(
-      "http://www.w3.org/ns/adms#status",
-      STATUS_SUCCESS,
-    );
-    for (const subject of successSubjects) {
-      console.log(`Starting working on success subject: ${subject}`);
-      try {
-        if (await isTask(subject)) {
-          await scheduleNextTask(subject);
-        } else {
-          console.log("not a task");
+app.post(
+  "/delta",
+  bodyParser.json({ limit: "50mb" }),
+  async function (req, res, next) {
+    //TODO: find a way to deal with obsolete delta data.
+    try {
+      const successSubjects = new Delta(req.body).getInsertsFor(
+        "http://www.w3.org/ns/adms#status",
+        STATUS_SUCCESS,
+      );
+      for (const subject of successSubjects) {
+        console.log(`Starting working on success subject: ${subject}`);
+        try {
+          if (await isTask(subject)) {
+            await scheduleNextTask(subject);
+          } else {
+            console.log("not a task");
+          }
+        } catch (subjectError) {
+          console.error(
+            `Error processing success subject ${subject}:`,
+            subjectError.message,
+          );
         }
-      } catch (subjectError) {
-        console.error(`Error processing success subject ${subject}:`, subjectError.message);
       }
-    }
 
-    const failSubjects = new Delta(req.body).getInsertsFor(
-      "http://www.w3.org/ns/adms#status",
-      STATUS_FAILED,
-    );
-    for (const subject of failSubjects) {
-      console.log(`Starting working on fail subject: ${subject}`);
-      try {
-        if (await isTask(subject)) {
-          await handleFailedTask(subject);
+      const failSubjects = new Delta(req.body).getInsertsFor(
+        "http://www.w3.org/ns/adms#status",
+        STATUS_FAILED,
+      );
+      for (const subject of failSubjects) {
+        console.log(`Starting working on fail subject: ${subject}`);
+        try {
+          if (await isTask(subject)) {
+            await handleFailedTask(subject);
+          }
+        } catch (subjectError) {
+          console.error(
+            `Error processing fail subject ${subject}:`,
+            subjectError.message,
+          );
         }
-      } catch (subjectError) {
-        console.error(`Error processing fail subject ${subject}:`, subjectError.message);
       }
-    }
 
-    return res.status(200).send().end();
-  } catch (e) {
-    console.error(`Delta processing failed:`, e.message);
-    return next(e);
+      return res.status(200).send().end();
+    } catch (e) {
+      console.error(`Delta processing failed:`, e.message);
+      return next(e);
+    }
   }
-});
+);
 
 async function scheduleNextTask(currentTaskUri) {
   console.log(`Scheduling next task based on ${currentTaskUri}`);
@@ -74,21 +89,33 @@ async function scheduleNextTask(currentTaskUri) {
 
   if (!currentTaskConfig) {
     //No config found for this task or final task in the job
-    if (getPreviousTaskConfig(jobsConfig, job, task)) {
+    const previousTaskConfig = getPreviousTaskConfig(jobsConfig, job, task);
+    if (previousTaskConfig && (await hasOnlySuccessfulTasks(task.job))) {
       //Task operation found as next operation is this config, so this is final task in job
       job.status = STATUS_SUCCESS;
       await updateJob(job);
-    } else {
+    } else if (!previousTaskConfig) {
       //Task operation is never referenced, then there is no config for this: do nothing other than fail/stop
       throw new Error(
         "No config is found for the current task operation such that no next task can be scheduled",
       );
     }
-  } else {
+  } else if (!currentTaskConfig.external) {
     // check if next task already exist before creating it
-    if (await taskExists(job.graph, job.job, currentTaskConfig.nextIndex, currentTaskConfig.nextOperation)) {
-            console.error(`${currentTaskConfig.nextOperation} in ${job.job} already exist`);
-            return;
+    const parents = [task.task];
+    if (
+      await taskExists(
+        job.graph,
+        job.job,
+        currentTaskConfig.nextIndex,
+        currentTaskConfig.nextOperation,
+        parents,
+      )
+    ) {
+      console.error(
+        `${currentTaskConfig.nextOperation} in ${job.job} already exist`,
+      );
+      return;
     }
     const nextTask = await createTask(
       job.graph,
@@ -96,7 +123,7 @@ async function scheduleNextTask(currentTaskUri) {
       currentTaskConfig.nextIndex,
       currentTaskConfig.nextOperation,
       STATUS_PREPARING,
-      [task.task],
+      parents,
       task.resultsContainers,
     );
 
@@ -160,10 +187,10 @@ function getPreviousTaskConfig(jobsConfiguration, job, currentTask) {
 }
 
 app.use((err, req, res, next) => {
-  if (err.type === 'entity.too.large') {
+  if (err.type === "entity.too.large") {
     console.warn(`Payload too large for ${req.method} ${req.originalUrl}`);
     return res.status(413).json({
-      errors: [ {title: 'Payload too large'} ]
+      errors: [{ title: "Payload too large" }],
     });
   }
 
