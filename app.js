@@ -2,14 +2,8 @@ import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
 import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_PREPARING } from "./constants";
-import {
-  loadTask,
-  createTask,
-  isTask,
-  taskExists,
-  hasOnlySuccessfulTasks,
-} from "./lib/task";
-import { loadJob, updateJob } from "./lib/job";
+import { loadTask, createTask, isTask, taskExists } from "./lib/task";
+import { isJobComplete, loadJob, updateJob } from "./lib/job";
 import * as jobsConfig from "./config/config.json";
 
 app.get("/", function (_, res) {
@@ -65,7 +59,7 @@ app.post(
       console.error(`Delta processing failed:`, e.message);
       return next(e);
     }
-  }
+  },
 );
 
 async function scheduleNextTask(currentTaskUri) {
@@ -90,7 +84,7 @@ async function scheduleNextTask(currentTaskUri) {
   if (!currentTaskConfig) {
     //No config found for this task or final task in the job
     const previousTaskConfig = getPreviousTaskConfig(jobsConfig, job, task);
-    if (previousTaskConfig && (await hasOnlySuccessfulTasks(task.job))) {
+    if (previousTaskConfig && (await isJobComplete(job))) {
       //Task operation found as next operation is this config, so this is final task in job
       job.status = STATUS_SUCCESS;
       await updateJob(job);
