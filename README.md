@@ -1,5 +1,10 @@
 # job-controller-service
-Microservice responsible for managing a data processing job and its related tasks.
+Microservice responsible for managing a data processing job and its related tasks. 
+
+The service detects completed tasks and schedules the next task according to tis configuration file. It does this by:
+- checking on startup
+- reacting to delta messages
+- performing periodic checks using a node cronjob
 
 # model
 
@@ -55,6 +60,7 @@ parentTask| cogs:dependsOn | task:Task
 job | dct:isPartOf | rdfs:Resource | Refer to the parent job
 resultsContainer | task:resultsContainer | nfo:DataContainer | An generic type, which may have elements such as File, Graph. The consumer needs to determine how to handle it.
 inputContainer | task:inputContainer | nfo:DataContainer | An generic type, which may have elements such as File, Graph. The consumer needs to determine how to handle it.
+checked for scheduling | ext:checkedForScheduling | xsd:dateTime | An internal predicate used by the job controller to track if it already checked completed or failed tasks in its scheduling
 
 ## Error
 
@@ -75,7 +81,11 @@ message | oslc:message | xsd:string
     image: lblod/job-controller-service:x.x.x
     volumes:
       - ./config/job-controller/:/config/
+    environment:
+      CRON_PATTERN: */5 * * * *
 ```
+
+Here, cron pattern is how often the service checks tasks for scheduling outside of deltas it receives (in case it misses a delta message)
 ## config.json
 An example config:
 ```json
