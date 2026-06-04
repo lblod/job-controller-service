@@ -1,10 +1,17 @@
 import { app, errorHandler } from "mu";
 import bodyParser from "body-parser";
-import { Delta } from "./lib/delta";
 import { STATUS_SUCCESS, STATUS_FAILED, STATUS_PREPARING } from "./constants";
-import { loadTask, createTask, isTask, taskExists } from "./lib/task";
+import {
+  loadTask,
+  createTask,
+  isTask,
+  taskExists,
+  getBatchTasksToConsiderForScheduling,
+  markTaskScheduled,
+} from "./lib/task";
 import { isJobComplete, loadJob, updateJob } from "./lib/job";
 import * as jobsConfig from "./config/config.json";
+import { CronJob } from "cron";
 
 app.get("/", function (_, res) {
   res.send("Hello from job-controller");
@@ -13,54 +20,90 @@ app.get("/", function (_, res) {
 app.post(
   "/delta",
   bodyParser.json({ limit: "50mb" }),
-  async function (req, res, next) {
-    //TODO: find a way to deal with obsolete delta data.
-    try {
-      const successSubjects = new Delta(req.body).getInsertsFor(
-        "http://www.w3.org/ns/adms#status",
-        STATUS_SUCCESS,
-      );
-      for (const subject of successSubjects) {
-        console.log(`Starting working on success subject: ${subject}`);
-        try {
-          if (await isTask(subject)) {
-            await scheduleNextTask(subject);
-          } else {
-            console.log("not a task");
-          }
-        } catch (subjectError) {
-          console.error(
-            `Error processing success subject ${subject}:`,
-            subjectError.message,
-          );
-        }
-      }
+  async function (_req, res) {
+    // not waiting for the scheduling to complete to reply to delta
+    // also not caring about the incoming delta, just check all tasks to be scheduled so we don't care if we miss deltas
+    handleOpenTasks().catch((e) => {
+      console.error(`something went wrong while scheduling tasks: ${e}`);
+    });
 
-      const failSubjects = new Delta(req.body).getInsertsFor(
-        "http://www.w3.org/ns/adms#status",
-        STATUS_FAILED,
-      );
-      for (const subject of failSubjects) {
-        console.log(`Starting working on fail subject: ${subject}`);
-        try {
-          if (await isTask(subject)) {
-            await handleFailedTask(subject);
-          }
-        } catch (subjectError) {
-          console.error(
-            `Error processing fail subject ${subject}:`,
-            subjectError.message,
-          );
-        }
-      }
-
-      return res.status(200).send().end();
-    } catch (e) {
-      console.error(`Delta processing failed:`, e.message);
-      return next(e);
-    }
+    return res.status(200).send().end();
   },
 );
+
+let lock = null;
+async function handleOpenTasks() {
+  const mylock = new Date();
+  if (lock) {
+    lock = mylock;
+    return;
+  }
+  lock = mylock;
+
+  let currentBatch = await getBatchTasksToConsiderForScheduling();
+  while (currentBatch.length > 0) {
+    const todo = [...currentBatch];
+    while (todo.length > 0) {
+      const current = todo.pop();
+      await handleOpenTask(current.uri, current.status);
+    }
+
+    currentBatch = await getBatchTasksToConsiderForScheduling();
+  }
+
+  if (lock === mylock) {
+    lock = null;
+    return;
+  } else {
+    lock = null;
+    await handleOpenTasks();
+  }
+}
+
+async function handleOpenTask(subject, status) {
+  try {
+    if (status === STATUS_SUCCESS) {
+      console.log(`Starting working on success subject: ${subject}`);
+      try {
+        if (await isTask(subject)) {
+          await scheduleNextTask(subject);
+        } else {
+          console.log(`not a successful task: ${subject}`);
+        }
+      } catch (subjectError) {
+        console.error(
+          `Error processing success subject ${subject}:`,
+          subjectError.message,
+        );
+      }
+    } else if (status === STATUS_FAILED) {
+      console.log(`Starting working on fail subject: ${subject}`);
+      try {
+        if (await isTask(subject)) {
+          await handleFailedTask(subject);
+        } else {
+          console.log(`not a failed task: ${subject}`);
+        }
+      } catch (subjectError) {
+        console.error(
+          `Error processing fail subject ${subject}:`,
+          subjectError.message,
+        );
+      }
+    } else {
+      console.log(`Unexpected status to handle for scheduling: ${status}`);
+    }
+  } catch (e) {
+    console.error(`Task processing failed for subject ${subject}:`, e.message);
+  } finally {
+    await markTaskScheduled(subject).catch((e) => {
+      console.error(
+        `ERROR, FAILURE, SOMETHING IS VERY WRONG: couldn't make task as scheduled: ${e}`,
+      );
+      process.exit(1);
+    });
+  }
+}
 
 async function scheduleNextTask(currentTaskUri) {
   console.log(`Scheduling next task based on ${currentTaskUri}`);
@@ -193,3 +236,16 @@ app.use((err, req, res, next) => {
 });
 
 app.use(errorHandler);
+
+handleOpenTasks().catch((e) => {
+  console.error(`Failed handling open tasks on startup: ${e}`);
+});
+
+export const cronjob = CronJob.from({
+  cronTime: process.env.CRON_PATTERN || "*/5 * * * *",
+  onTick: async () => {
+    handleOpenTasks().catch((e) => {
+      console.error(`Something went wrong during scheduling inside cron: ${e}`);
+    });
+  },
+});
