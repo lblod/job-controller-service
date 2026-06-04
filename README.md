@@ -1,7 +1,7 @@
 # job-controller-service
-Microservice responsible for managing a data processing job and its related tasks. 
+Microservice responsible for managing a data processing job and its related tasks.
 
-The service detects completed tasks and schedules the next task according to tis configuration file. It does this by:
+The service detects completed tasks and schedules the next task according to its configuration file. It does this by:
 - checking on startup
 - reacting to delta messages
 - performing periodic checks using a node cronjob
@@ -85,7 +85,8 @@ message | oslc:message | xsd:string
       CRON_PATTERN: */5 * * * *
 ```
 
-Here, cron pattern is how often the service checks tasks for scheduling outside of deltas it receives (in case it misses a delta message)
+Here, cron pattern is how often the service checks tasks for scheduling outside of deltas it receives (in case it misses a delta message.)
+
 ## config.json
 An example config:
 ```json
@@ -101,7 +102,7 @@ An example config:
         "currentOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/collecting",
         "nextOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/importing",
         "nextIndex": "1",
-        "external": true,
+        "external": true
       },
       {
         "currentOperation": "http://lblod.data.gift/id/jobs/concept/TaskOperation/importing",
@@ -141,6 +142,7 @@ In this config, one type of job is described, a job with `task:operation` equal 
   }
 ]
 ```
+
 # Caveats
 - The service assumes the job is stored in one graph.
 - The current job configuration is linear, i.e. one task follows from one task. But a tree or graph like job configuration can be realized by using the `external` property and have a dedicated service take care of the splitting and merging logic. This logic is externalized because it is often very domain-dependent. It is therefore handled as a task itself, e.g. http://lblod.data.gift/id/jobs/concept/TaskOperation/split-for-annotation
