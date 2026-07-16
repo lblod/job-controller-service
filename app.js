@@ -40,6 +40,20 @@ async function handleOpenTasks() {
   }
   lock = mylock;
 
+  await unsafeHandleOpenTasks().catch((e) => {
+    console.log(`Something went wrong while handling open tasks: ${e}`);
+  });
+
+  if (lock === mylock) {
+    lock = null;
+    return;
+  } else {
+    lock = null;
+    await handleOpenTasks();
+  }
+}
+
+async function unsafeHandleOpenTasks() {
   let currentBatch = await getBatchTasksToConsiderForScheduling();
   while (currentBatch.length > 0) {
     const todo = [...currentBatch];
@@ -49,14 +63,6 @@ async function handleOpenTasks() {
     }
 
     currentBatch = await getBatchTasksToConsiderForScheduling();
-  }
-
-  if (lock === mylock) {
-    lock = null;
-    return;
-  } else {
-    lock = null;
-    await handleOpenTasks();
   }
 }
 
