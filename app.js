@@ -9,7 +9,7 @@ import {
   getBatchTasksToConsiderForScheduling,
   markTaskScheduled,
 } from "./lib/task";
-import { isJobComplete, loadJob, updateJob } from "./lib/job";
+import { isJobComplete, loadJob, updateJobStatus } from "./lib/job";
 import * as jobsConfig from "./config/config.json";
 import { CronJob } from "cron";
 
@@ -135,8 +135,7 @@ async function scheduleNextTask(currentTaskUri) {
     const previousTaskConfig = getPreviousTaskConfig(jobsConfig, job, task);
     if (previousTaskConfig && (await isJobComplete(job))) {
       //Task operation found as next operation is this config, so this is final task in job
-      job.status = STATUS_SUCCESS;
-      await updateJob(job);
+      await updateJobStatus(job, STATUS_SUCCESS);
     } else if (!previousTaskConfig) {
       //Task operation is never referenced, then there is no config for this: do nothing other than fail/stop
       throw new Error(
@@ -171,8 +170,6 @@ async function scheduleNextTask(currentTaskUri) {
     );
 
     job.tasks.push(nextTask.task);
-
-    await updateJob(job);
   }
 }
 
@@ -193,8 +190,7 @@ async function handleFailedTask(currentTaskUri) {
     return;
   }
 
-  job.status = STATUS_FAILED;
-  await updateJob(job);
+  await updateJobStatus(job, STATUS_FAILED);
 }
 
 function getCurrentTaskConfig(jobsConfiguration, job, currentTask) {
