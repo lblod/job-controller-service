@@ -250,4 +250,5 @@ export const cronjob = CronJob.from({
       console.error(`Something went wrong during scheduling inside cron: ${e}`);
     });
   },
+  start: true,
 });
