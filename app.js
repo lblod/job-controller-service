@@ -10,7 +10,7 @@ import {
   markTaskScheduled,
 } from "./lib/task";
 import { isJobComplete, loadJob, updateJobStatus } from "./lib/job";
-import * as jobsConfig from "./config/config.json";
+import jobsConfig from "./config/config.json";
 import { CronJob } from "cron";
 
 app.get("/", function (_, res) {
